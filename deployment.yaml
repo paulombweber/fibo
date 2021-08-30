@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: fibo
+  name: fibo
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: fibo
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: fibo
+    spec:
+      containers:
+      - image: pauloweber/fibo:snapshot
+        name: fibo
+        resources: {}
+        ports:
+          - containerPort: 8080
+        livenessProbe:
+          failureThreshold: 1
+          initialDelaySeconds: 60
+          periodSeconds: 45
+          successThreshold: 1
+          httpGet:
+            path: /actuator/health/liveness
+            port: 8080
+        lifecycle:
+          preStop:
+            exec:
+              command: [ "sh", "-c", "sleep 10" ]
+status: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: null
+  labels:
+    app: fibo
+  name: fibo
+spec:
+  ports:
+    - name: 8080-8080
+      port: 8080
+      protocol: TCP
+      targetPort: 8080
+  selector:
+    app: fibo
+  type: ClusterIP
+status:
+  loadBalancer: {}
